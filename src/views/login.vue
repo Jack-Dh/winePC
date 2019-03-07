@@ -168,8 +168,8 @@
                     if (res.data.code == 200) {
                         let nickname = res.data.data.nickname
                         let username = res.data.data.username
-                        this.$cookies.set('nickname', nickname)
-                        this.$cookies.set('username', username)
+                        sessionStorage.setItem('nickname', nickname)
+                        sessionStorage.setItem('username', username)
                         this.$router.push('/Home')
                     } else {
                         this.$message.error(res.data.msg);

@@ -90,7 +90,8 @@
             out(){
               //退出
                 this.$router.push('/')
-                this.$cookies.remove('username')
+                sessionStorage.removeItem('username')
+                sessionStorage.removeItem('nickname')
             },
             //新增选项卡
             addTab(targetName, url) {
@@ -166,10 +167,10 @@
 
         },
         created: function () {
-            let name = this.$cookies.get('nickname')
+            let name =  sessionStorage.getItem('nickname')
             if (name) {
-                this.nickname = this.$cookies.get('nickname')
-                let username = this.$cookies.get('username')
+                this.nickname = sessionStorage.getItem('nickname')
+                let username = sessionStorage.getItem('username')
                let index=sessionStorage.getItem('index')
                     this.indexTab=index
                 if (username!='admin'){

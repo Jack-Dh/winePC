@@ -3,8 +3,8 @@
         <div style="display: flex;justify-content: space-between">
             <div>
                 <el-button type="primary" @click="dialogVisible=true" size="mini">新增</el-button>
+                <el-button type="primary" @click="delwins()" size="mini">批量删除</el-button>
             </div>
-
             <div>
                 <el-input size="mini" style="width: 50%" v-model="barquery" placeholder="编码"></el-input>
                 <el-button size="mini" @click="barquery=''">重置</el-button>
@@ -18,7 +18,26 @@
             <el-table
                     :data="wineLiat"
                     border
+                    @selection-change="handleSelectionChange"
             >
+                <el-table-column
+                        type="index"
+                        align="center"
+                ></el-table-column>
+                <el-table-column
+                        type="selection"
+                        align="center"
+                ></el-table-column>
+                <el-table-column
+                        label="操作"
+                        align="center"
+                        width="140"
+                >
+                    <template slot-scope="scope">
+                        <el-button type="text" @click="upAlcoho(scope.row)">修改</el-button>
+                        <el-button type="text" @click="delAlchol(scope.row)">删除</el-button>
+                    </template>
+                </el-table-column>
                 <el-table-column
                         label="条形码"
                         prop="bar"
@@ -34,8 +53,8 @@
                                 placement="top-start"
                                 trigger="hover"
                         >
-                            <img style="width: 300px;height: 300px" :src="scope.row.imageUrl">
-                            <img slot="reference" style="width: 50px;height: 50px" :src="scope.row.imageUrl">
+                            <img style="width: 300px;height: 300px" :src="'http://'+scope.row.imageUrl">
+                            <img slot="reference" style="width: 50px;height: 50px" :src="'http://'+scope.row.imageUrl">
                         </el-popover>
                     </template>
                 </el-table-column>
@@ -77,7 +96,7 @@
             </el-pagination>
         </div>
 
-
+        <!--新增-->
         <el-dialog
                 title="新增酒类"
                 :visible.sync="dialogVisible"
@@ -86,7 +105,7 @@
 
 
             <el-upload
-                    action="http://192.168.1.199:8088/qrcode/qrcode/uploadImage "
+                    action="http://qrcode.jiajiachuang.cn/qrcode/qrcode/uploadPictures"
                     list-type="picture-card"
                     :on-preview="handlePictureCardPreview"
                     :on-success="uploadImage"
@@ -139,6 +158,62 @@
         </el-dialog>
 
 
+        <!--修改-->
+        <el-dialog
+                title="修改酒类"
+                :visible.sync="updialogVisible"
+                width="60%"
+        >
+            <el-upload
+                    action="http://qrcode.jiajiachuang.cn/qrcode/qrcode/uploadPictures"
+                    list-type="picture-card"
+                    :on-preview="handlePictureCardPreview"
+                    :on-success="upuploadImage"
+                    name="file"
+                    :before-upload="beforeAvatarUpload"
+                    accept=".png,.jpg,.jpeg"
+                    :limit="1"
+            >
+                <!--upAlcohlData.imageUrl-->
+                <i class="el-icon-plus"></i>
+            </el-upload>
+            <img v-if="imgshow" style="width: 146px;height: 146px" :src="'http://'+upAlcohlData.imageUrl">
+            <el-dialog :visible.sync="upbingImg">
+                <img width="100%" :src="dialogImageUrl" alt="">
+            </el-dialog>
+            <div slot="tip" class="el-upload__tip">只能上传jpg/png/jpeg文件，且不超过2M</div>
+
+
+            <el-form :model="upAlcohlData" ref="upAlcohlData" label-width="100px" class="demo-ruleForm" :inline="true">
+                <el-row>
+                    <el-form-item
+                            prop="price"
+                            :rules="[
+                             { required: true, message: '请输入酒品价格'},
+                     ]"
+                    >
+                        <el-input placeholder="酒品价格,例（300.00）" v-model.number="upAlcohlData.price"></el-input>
+                    </el-form-item>
+                </el-row>
+                <el-row>
+                    <el-form-item
+                            prop="price"
+                            :rules="[
+                             { required: true, message: '请输入酒品条形码'},
+                     ]"
+                    >
+                        <el-input placeholder="酒品条形码" v-model.number="upAlcohlData.bar"></el-input>
+                    </el-form-item>
+                </el-row>
+                <el-form-item>
+
+                    <el-button type="primary" @click="upsubmitForm('upAlcohlData')">保存</el-button>
+                </el-form-item>
+            </el-form>
+
+
+        </el-dialog>
+
     </div>
 </template>
 
@@ -153,8 +228,14 @@
                 urlValvue: '',//生成地址
                 dialogImageUrl: '',//上传图片展现用户地址
                 bingImg: false,//查看大图
+                upbingImg: false,//修改信息查看大图
                 imgUrl: '',//数据库图片地址
                 AlcohlData: {
+                    price: '',//酒品价格
+                    imageUrl: '',//图片地址
+                    bar: '',//酒品条形码
+                },
+                upAlcohlData: {
                     price: '',//酒品价格
                     imageUrl: '',//图片地址
                     bar: '',//酒品条形码
@@ -165,14 +246,28 @@
                 AlcohoId: '',//
                 wineLiat: [],//酒品信息
                 dialogVisible: false,//新增酒品面板
+                updialogVisible: false,//修改酒品面板
                 totalRecord: 0,//总数
                 pageNum: 1,//当前页数
                 barquery: '',//条形码查询
+                imgshow: true,//修改时，显示图片
+                ids:[],//多选时获得ID
 
             }
         },
         methods: {
-
+            handleSelectionChange(val){
+                //获得多选id
+                this.ids.length=0
+                val.forEach(item=>{
+                    this.ids.push(item.id)
+                })
+            },
+            delAlchol(data){
+                //删除
+                this.ids.push(data.id)
+                this.delwins()
+            },
             handleCurrentChange(val) {
                 this.pageNum = val
                 this.pagequery()
@@ -187,6 +282,12 @@
                 return isLt2M;
 
             },
+            upAlcoho(data) {
+                //打开修改面板
+                this.updialogVisible = true
+                this.upAlcohlData = data
+                console.log(this.upAlcohlData)
+            },
             submitForm(formName) {
 
                 // let oQrcode = document.querySelector('#qrcode img').src
@@ -199,7 +300,10 @@
                             if (res.data.code == 200) {
                                 this.$message({
                                     message: '添加成功',
-                                    type: 'success'
+                                    type: 'success',
+                                    onClose() {
+                                        location.reload();
+                                    }
                                 });
                                 this.urlValvue = `http://mobile.jiajiachuang.cn?id=${res.data.data.id}`
                                 this.AlcohoId = res.data.data.id
@@ -208,8 +312,31 @@
 
                         })
 
+                    } else {
+                        this.$message.error('数据还未填写完全！');
+                        return false;
+                    }
+                });
+            },
+            upsubmitForm(formName) {
 
-                        // this.switchShow = true//显示图片
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+
+                        console.log(this.upAlcohlData)
+                        this.$axios.post(this.$store.state.upwine, this.upAlcohlData).then(res => {
+                            if (res.data.code == 200) {
+                                this.$message({
+                                    message: '修改成功',
+                                    type: 'success',
+                                    onClose() {
+                                        location.reload();
+                                    }
+                                });
+                            }
+
+                        })
+
                     } else {
                         this.$message.error('数据还未填写完全！');
                         return false;
@@ -239,7 +366,17 @@
                 if (response.code != 200) {
                     this.$message.error(file.response.msg);
                 } else {
+                    this.imgshow = false
                     this.AlcohlData.imageUrl = response.data
+                }
+            },
+            upuploadImage(response, file, fileList) {
+                //修改图片信息
+                if (response.code != 200) {
+                    this.$message.error(file.response.msg);
+                } else {
+                    this.imgshow = false
+                    this.upAlcohlData.imageUrl = response.data
                 }
             },
             handlePictureCardPreview(file) {
@@ -247,7 +384,22 @@
                 this.bingImg = true;
             },
 
-
+            delwins(){
+                //删除红酒信息
+              this.$axios.post(this.$store.state.delwine,{ids:this.ids}).then(res=>{
+                  if (res.data.code == 200) {
+                      this.$message({
+                          message: '删除成功',
+                          type: 'success',
+                          onClose() {
+                              location.reload();
+                          }
+                      });
+                  }
+              }).catch(err=>{
+                  this.$message.error(err);
+              })
+            },
             downloadImg() {
 
                 if (this.urlValvue != '') {
