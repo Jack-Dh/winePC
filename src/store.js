@@ -9,7 +9,7 @@ export default new Vuex.Store({
         adduserLogin:'http://qrcode.jiajiachuang.cn/qrcode/operator/save',//注册
 
         operatorquery:'http://qrcode.jiajiachuang.cn/qrcode/operator/queryPage',//操作员信息分页查询
-        delopera:'http://qrcode.jiajiachuang.cn/operator/delete',//根据id删除操作员
+        delopera:'http://qrcode.jiajiachuang.cn/qrcode/operator/delete',//根据id删除操作员
         upuserLogin:'http://qrcode.jiajiachuang.cn/qrcode/operator/update',//修改管理员信息
 
         addwine: 'http://qrcode.jiajiachuang.cn/qrcode/qrcode/save',//添加酒品

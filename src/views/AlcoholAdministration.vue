@@ -126,6 +126,7 @@
             <el-form :model="AlcohlData" ref="AlcohlData" label-width="100px" class="demo-ruleForm" :inline="true">
                 <el-row>
                     <el-form-item
+                            label="酒品价格"
                             prop="price"
                             :rules="[
                              { required: true, message: '请输入酒品价格'},
@@ -136,6 +137,7 @@
                 </el-row>
                 <el-row>
                     <el-form-item
+                            label="酒品条形码"
                             prop="price"
                             :rules="[
                              { required: true, message: '请输入酒品条形码'},
@@ -301,13 +303,12 @@
                                 this.$message({
                                     message: '添加成功',
                                     type: 'success',
-                                    onClose() {
-                                        location.reload();
-                                    }
                                 });
                                 this.urlValvue = `http://mobile.jiajiachuang.cn?id=${res.data.data.id}`
                                 this.AlcohoId = res.data.data.id
-                                console.log(this.urlValvue)
+
+                            }else {
+                                this.$message.error(res.data.msg);
                             }
 
                         })
@@ -333,6 +334,8 @@
                                         location.reload();
                                     }
                                 });
+                            }else {
+                                this.$message.error(res.data.msg);
                             }
 
                         })
